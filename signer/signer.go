@@ -46,20 +46,30 @@ func ExecutePipeline(jobs ...job) {
 }
 
 func runPipeline(worker job, in, out chan interface{}, wg *sync.WaitGroup) {
+
 	defer wg.Done()
 	worker(in, out)
+
 	close(out)
+
 }
 
 func runGoroutine(ch chan<- string, data string, job func(string) string, wg *sync.WaitGroup) {
+
 	defer wg.Done()
+
 	ch <- job(data)
+
 }
 
 func runGoroutineLock(ch chan<- string, data string, job func(string) string, wg *sync.WaitGroup, mu *sync.Mutex) {
+
 	defer wg.Done()
+
 	mu.Lock()
+
 	ch <- job(data)
+
 	mu.Unlock()
 }
 
@@ -82,8 +92,10 @@ func SingleHash(in, out chan interface{}) {
 		go runGoroutine(strChan2, <-strChan2, DataSignerCrc32, &wgSingle)
 
 		go func(out chan interface{}, ch1, ch2 <-chan string, wg *sync.WaitGroup) {
+
 			defer wg.Done()
 			out <- (<-ch1 + "~" + <-ch2)
+
 		}(out, strChan1, strChan2, &wgSingle)
 
 	}
@@ -92,6 +104,7 @@ func SingleHash(in, out chan interface{}) {
 }
 
 func MultiHash(in, out chan interface{}) {
+
 	var wgMulti sync.WaitGroup
 
 	s := make([][]string, 0, MaxInputDataLen)
@@ -110,8 +123,10 @@ func MultiHash(in, out chan interface{}) {
 			str := fmt.Sprintf("%d%s", j, data)
 
 			go func(arr []string, ind int, data string, work func(string) string, wg *sync.WaitGroup) {
+
 				defer wg.Done()
 				arr[ind] = work(data)
+
 			}(arr, j, str, DataSignerCrc32, &wgMulti)
 
 		}
@@ -132,10 +147,14 @@ func CombineResults(in, out chan interface{}) {
 	max := 0
 
 	for _, elem := range data {
+
 		str := strings.Join(elem, "")
+
 		if len(str) > max {
+
 			max = len(str)
 		}
+
 		s = append(s, str)
 	}
 
@@ -144,19 +163,26 @@ func CombineResults(in, out chan interface{}) {
 		str1, str2 := s[i], s[j]
 
 		if len(str1) < max {
+
 			num := max - len(str1)
 			str1 += strings.Repeat("0", num)
+
 		}
 
 		if len(str2) < max {
+
 			num := max - len(str2)
 			str2 += strings.Repeat("0", num)
+
 		}
 
 		for i := range str1 {
+
 			num1, _ := strconv.Atoi(string(str1[i]))
 			num2, _ := strconv.Atoi(string(str2[i]))
+
 			if num1 != num2 {
+
 				return num1 < num2
 			}
 		}
