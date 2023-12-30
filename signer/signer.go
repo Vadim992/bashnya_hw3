@@ -137,58 +137,35 @@ func MultiHash(in, out chan interface{}) {
 }
 
 func CombineResults(in, out chan interface{}) {
-
 	val := <-in
-
 	data := val.([][]string)
-
 	s := make([]string, 0, len(data))
-
 	max := 0
-
 	for _, elem := range data {
-
 		str := strings.Join(elem, "")
-
 		if len(str) > max {
-
 			max = len(str)
 		}
-
 		s = append(s, str)
 	}
-
 	sort.Slice(s, func(i, j int) bool {
-
 		str1, str2 := s[i], s[j]
-
 		if len(str1) < max {
-
 			num := max - len(str1)
 			str1 += strings.Repeat("0", num)
-
 		}
-
 		if len(str2) < max {
-
 			num := max - len(str2)
 			str2 += strings.Repeat("0", num)
-
 		}
-
 		for i := range str1 {
-
 			num1, _ := strconv.Atoi(string(str1[i]))
 			num2, _ := strconv.Atoi(string(str2[i]))
-
 			if num1 != num2 {
-
 				return num1 < num2
 			}
 		}
-
 		return false
 	})
-
 	out <- strings.Join(s, "_")
 }
