@@ -25,19 +25,19 @@ func ExecutePipeline(jobs ...job) {
 
 		case i == 0:
 
-			go runPipeline(jobs[i], nil, out, &wg)
+			go runGo(jobs[i], nil, out, &wg)
 
 		case i%2 == 0:
 
 			out = make(chan interface{})
 
-			go runPipeline(jobs[i], in, out, &wg)
+			go runGo(jobs[i], in, out, &wg)
 
 		default:
 
 			in = make(chan interface{})
 
-			go runPipeline(jobs[i], out, in, &wg)
+			go runGo(jobs[i], out, in, &wg)
 
 		}
 	}
@@ -45,7 +45,7 @@ func ExecutePipeline(jobs ...job) {
 	wg.Wait()
 }
 
-func runPipeline(worker job, in, out chan interface{}, wg *sync.WaitGroup) {
+func runGo(worker job, in, out chan interface{}, wg *sync.WaitGroup) {
 
 	defer wg.Done()
 	worker(in, out)
